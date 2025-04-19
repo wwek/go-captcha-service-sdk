@@ -1,0 +1,17 @@
+{
+  "name": "go-captcha-service-sdk",
+  "version": "1.0.0",
+  "description": "This is the service sdk of GoCaptcha",
+  "main": "dist/go-captcha-service-sdk.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "proto": "npx pbjs --es6 ./nodejs/proto/api_pb.js --ts ./nodejs/proto/api_pb.ts ./gocaptcha-service-api.proto"
+  },
+  "author": "Awen",
+  "email": "wengaolng@gmail.com",
+  "license": "<MIT>",
+  "devDependencies": {
+    "pbjs": "^0.0.14",
+    "pbts": "^4.0.7"
+  }
+}
