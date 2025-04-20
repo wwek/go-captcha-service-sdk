@@ -96,15 +96,8 @@ func (c *client) SelectAddressWithKey(key string) (string, error) {
 		}
 		return "", fmt.Errorf("failed to select instance: %v", err)
 	}
-	grpcPort, ok := inst.Metadata["grpc_port"]
-	if !ok {
-		if c.config.BaseAddress != "" {
-			return c.config.BaseAddress, nil
-		}
-		return "", fmt.Errorf("grpc_port not found in instance metadata")
-	}
 
-	addr := fmt.Sprintf("%s:%s", inst.Host, grpcPort)
+	addr := inst.GetGRPCAddress()
 	return addr, nil
 }
 

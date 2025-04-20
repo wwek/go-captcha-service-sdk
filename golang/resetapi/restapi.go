@@ -102,15 +102,8 @@ func (c *client) SelectAddressWithKey(key string) (string, error) {
 		}
 		return "", fmt.Errorf("failed to select instance: %v", err)
 	}
-	httpPort, ok := inst.Metadata["http_port"]
-	if !ok {
-		if c.config.BaseUrl != "" {
-			return c.config.BaseUrl, nil
-		}
-		return "", fmt.Errorf("http_port not found in instance metadata")
-	}
 
-	url := fmt.Sprintf("http://%s:%s", inst.Host, httpPort)
+	url := fmt.Sprintf("http://%s", inst.GetHTTPAddress())
 	return url, nil
 }
 

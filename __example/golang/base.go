@@ -15,13 +15,13 @@ var grpcapiCli grpcapi.Client
 var sdlbInts *sdlb.SDLB
 
 const serviceName = "go-captcha-service"
-const Addrs = "localhost:8500"
+const Addrs = "localhost:2379"
 const ApiKey = "my-secret-key-123"
 
 // setupHttpClient .
 func setupHttpClient() error {
 	sdlbInstance, err := sdlb.NewServiceDiscoveryLB(sdlb.ClientConfig{
-		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeConsul,
+		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeEtcd,
 		Addrs:                Addrs,
 		LoadBalancerType:     balancer.LoadBalancerTypeRandom,
 		ServiceName:          serviceName,
@@ -42,7 +42,7 @@ func setupHttpClient() error {
 // setupGrpcClient .
 func setupGrpcClient() error {
 	sdlbInstance, err := sdlb.NewServiceDiscoveryLB(sdlb.ClientConfig{
-		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeConsul,
+		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeEtcd,
 		Addrs:                Addrs,
 		LoadBalancerType:     balancer.LoadBalancerTypeRandom,
 		ServiceName:          serviceName,
