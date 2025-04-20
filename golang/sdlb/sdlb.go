@@ -1,12 +1,15 @@
 package sdlb
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/wenlng/go-service-discovery/base"
-	"github.com/wenlng/go-service-discovery/loadbalancer"
-	"github.com/wenlng/go-service-discovery/servicediscovery"
+	"github.com/wenlng/go-service-link/servicediscovery"
+	"github.com/wenlng/go-service-link/servicediscovery/balancer"
+	"github.com/wenlng/go-service-link/servicediscovery/instance"
 )
 
 // ServiceDiscoveryType .
@@ -20,9 +23,9 @@ const (
 
 // LoadBalancerType .
 const (
-	LoadBalancerTypeRandom         = loadbalancer.LoadBalancerTypeRandom
-	LoadBalancerTypeRoundRobin     = loadbalancer.LoadBalancerTypeRoundRobin
-	LoadBalancerTypeConsistentHash = loadbalancer.LoadBalancerTypeConsistentHash
+	LoadBalancerTypeRandom         = balancer.LoadBalancerTypeRandom
+	LoadBalancerTypeRoundRobin     = balancer.LoadBalancerTypeRoundRobin
+	LoadBalancerTypeConsistentHash = balancer.LoadBalancerTypeConsistentHash
 )
 
 // SDLB ..
@@ -34,19 +37,19 @@ type SDLB struct {
 	isSDLBActive     bool
 	isSDLBActiveLock sync.RWMutex
 
-	done      chan bool
-	reconnect chan bool
+	stop     chan struct{}
+	isClosed bool
 }
 
 // ClientConfig ..
 type ClientConfig struct {
 	ServiceDiscoveryType  servicediscovery.ServiceDiscoveryType
-	LoadBalancerType      loadbalancer.LoadBalancerType
+	LoadBalancerType      balancer.LoadBalancerType
 	ServiceName           string
 	Addrs                 string // 127.0.0.1:8080,192.168.0.1:8080
 	TTL                   time.Duration
 	KeepAlive             time.Duration // Heartbeat interval
-	LogOutputHookCallback servicediscovery.LogOutputHookFunc
+	LogOutputHookCallback servicediscovery.OutputLogCallback
 }
 
 // NewServiceDiscoveryLB ..
@@ -72,16 +75,65 @@ func NewServiceDiscoveryLB(cnf ClientConfig) (*SDLB, error) {
 		return nil, err
 	}
 
-	discovery.SetLogOutputHookFunc(cnf.LogOutputHookCallback)
+	discovery.SetOutputLogCallback(cnf.LogOutputHookCallback)
 
-	return &SDLB{
+	c := &SDLB{
 		discovery: discovery,
 		config:    cnf,
-	}, nil
+	}
+
+	c.start()
+
+	return c, nil
+}
+
+func (c *SDLB) start() {
+	go c.watchInstances()
+}
+
+func (c *SDLB) watchInstances() {
+	if c.discovery == nil {
+		return
+	}
+
+	if c.stop != nil {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch, err := c.discovery.Watch(ctx, c.config.ServiceName)
+	if err != nil {
+		if c.config.LogOutputHookCallback != nil {
+			c.config.LogOutputHookCallback(servicediscovery.OutputLogTypeError, fmt.Sprintf("[GoCaptchaServiceSDK-SDLB] Failed to discovery watch: %v", err))
+		}
+
+		if !c.isClosed {
+			c.start()
+		}
+
+		return
+	}
+
+	c.stop = make(chan struct{})
+	for {
+		select {
+		case <-c.stop:
+			return
+		case instances, ok := <-ch:
+			if !ok {
+				return
+			}
+			instancesStr, _ := json.Marshal(instances)
+			if c.config.LogOutputHookCallback != nil {
+				c.config.LogOutputHookCallback(servicediscovery.OutputLogTypeInfo, fmt.Sprintf("[GoCaptchaServiceSDK-SDLB] Discovered instances: %d, list: %v", len(instances), string(instancesStr)))
+			}
+		}
+	}
 }
 
 // Select .
-func (c *SDLB) Select(key string) (base.ServiceInstance, error) {
+func (c *SDLB) Select(key string) (instance.ServiceInstance, error) {
 	return c.discovery.Select(c.config.ServiceName, key)
 }
 
@@ -100,34 +152,10 @@ func (c *SDLB) setActive(active bool) {
 }
 
 // Close ..
-func (c *SDLB) close() error {
+func (c *SDLB) Close() error {
+	if c.stop != nil {
+		c.stop <- struct{}{}
+	}
+	c.isClosed = true
 	return c.discovery.Close()
 }
-
-//func (c *SDLB) start() error {
-//	defer c.close()
-//	c.reconnect = make(chan bool)
-//
-//	go c.watch()
-//	for {
-//		select {
-//		case <-p.reconnect:
-//			if !p.reconn() {
-//				go p.delayReconn()
-//			} else {
-//				go p.receive(false)
-//			}
-//		case <-p.done:
-//			return nil
-//		}
-//	}
-//}
-//
-//func (c *SDLB) watch(hasConn bool) {
-//
-//}
-
-// Watch ..
-//func (c *SDLB) watch(ctx context.Context, name string) (chan []base.ServiceInstance, error) {
-//	return c.discovery.Watch(ctx, c.config.ServiceName)
-//}

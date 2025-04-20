@@ -6,42 +6,13 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/wenlng/go-captcha-service-sdk/golang/resetapi"
-	"github.com/wenlng/go-captcha-service-sdk/golang/sdlb"
-	"github.com/wenlng/go-service-discovery/loadbalancer"
-	"github.com/wenlng/go-service-discovery/servicediscovery"
 )
 
-// setupHttpClient .
-func setupHttpClient() (resetapi.Client, error) {
-	sdlbInstance, err := sdlb.NewServiceDiscoveryLB(sdlb.ClientConfig{
-		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeConsul,
-		Addrs:                "localhost:8500",
-		LoadBalancerType:     loadbalancer.LoadBalancerTypeRandom,
-		ServiceName:          "go-captcha-service",
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to new sdlb: %v", err)
-	}
-
-	return resetapi.NewHTTPClient(resetapi.ClientConfig{
-		APIKey: "my-secret-key-123",
-	}, sdlbInstance)
-}
-
 func TestHttpGetData(id string) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.GetData(ctx, id)
+	res, err := restapiCli.GetData(ctx, id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get data: %v\n", err)
 		return
@@ -52,16 +23,10 @@ func TestHttpGetData(id string) {
 }
 
 func TestHttpCheckData(id, captchaKey, value string) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.CheckData(ctx, id, captchaKey, value)
+	res, err := restapiCli.CheckData(ctx, id, captchaKey, value)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to check data: %v\n", err)
 		return
@@ -72,16 +37,10 @@ func TestHttpCheckData(id, captchaKey, value string) {
 }
 
 func TestHttpGetStatusInfo(captchaKey string) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.GetStatusInfo(ctx, captchaKey)
+	res, err := restapiCli.GetStatusInfo(ctx, captchaKey)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get status info: %v\n", err)
 		return
@@ -92,16 +51,10 @@ func TestHttpGetStatusInfo(captchaKey string) {
 }
 
 func TestHttpDelStatusInfo(captchaKey string) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.DelStatusInfo(ctx, captchaKey)
+	res, err := restapiCli.DelStatusInfo(ctx, captchaKey)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to del status info: %v\n", err)
 		return
@@ -112,16 +65,10 @@ func TestHttpDelStatusInfo(captchaKey string) {
 }
 
 func TestHttpGetResourceList() {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.GetResourceList(ctx, "/gocaptcha")
+	res, err := restapiCli.GetResourceList(ctx, "/gocaptcha")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get data: %v\n", err)
 		return
@@ -132,16 +79,10 @@ func TestHttpGetResourceList() {
 }
 
 func TestHttpGetConfig() {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.GetConfig(ctx)
+	res, err := restapiCli.GetConfig(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get data: %v\n", err)
 		return
@@ -152,16 +93,10 @@ func TestHttpGetConfig() {
 }
 
 func TestHttpUpdateConfig(jsonStr string) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := client.UpdateHotConfig(ctx, jsonStr)
+	res, err := restapiCli.UpdateHotConfig(ctx, jsonStr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to check data: %v\n", err)
 		return
@@ -172,16 +107,10 @@ func TestHttpUpdateConfig(jsonStr string) {
 }
 
 func TestHttpUploadResource(dirname string, files []*os.File) {
-	client, err := setupHttpClient()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, someDone, err := client.UploadResource(ctx, dirname, files)
+	res, someDone, err := restapiCli.UploadResource(ctx, dirname, files)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to check data: %v\n", err)
 		return

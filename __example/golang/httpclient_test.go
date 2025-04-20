@@ -7,6 +7,13 @@ import (
 )
 
 func TestHttp(t *testing.T) {
+	err := setupHttpClient()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to new sdlb: %v\n", err)
+		return
+	}
+	defer closeSDLB()
+
 	TestHttpGetData("click_dark_ch")
 
 	//TestHttpCheckData("click_dark_ch", "aa7e31da-1c6c-11f0-b0d1-8c85907c8cf5", "34,54")
