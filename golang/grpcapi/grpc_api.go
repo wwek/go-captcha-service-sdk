@@ -46,6 +46,8 @@ type ClientConfig struct {
 	RetryWaitTime    time.Duration
 	RetryMaxWaitTime time.Duration
 	Timeout          time.Duration
+
+	FilterHost func(host, port string) string
 }
 
 var _ Client = (*client)(nil)
@@ -95,6 +97,10 @@ func (c *client) SelectAddressWithKey(key string) (string, error) {
 			return c.config.BaseAddress, nil
 		}
 		return "", fmt.Errorf("failed to select instance: %v", err)
+	}
+
+	if c.config.FilterHost != nil {
+		return c.config.FilterHost(inst.GetHost(), inst.GetGRPCPort()), nil
 	}
 
 	addr := inst.GetGRPCAddress()

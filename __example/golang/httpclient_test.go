@@ -14,9 +14,9 @@ func TestHttp(t *testing.T) {
 	}
 	defer closeSDLB()
 
-	TestHttpGetData("click_dark_ch")
+	TestHttpGetData("click-dark-ch")
 
-	//TestHttpCheckData("click_dark_ch", "aa7e31da-1c6c-11f0-b0d1-8c85907c8cf5", "34,54")
+	//TestHttpCheckData("click-dark-ch", "aa7e31da-1c6c-11f0-b0d1-8c85907c8cf5", "34,54")
 
 	//TestHttpGetStatusInfo("aa7e31da-1c6c-11f0-b0d1-8c85907c8cf5")
 

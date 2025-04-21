@@ -14,9 +14,9 @@ func TestGrpc(t *testing.T) {
 	}
 	defer closeSDLB()
 
-	TestGrpcGetData("click_dark_ch")
+	TestGrpcGetData("click-dark-ch")
 
-	//TestGrpcCheckData("click_dark_ch", "25011d90-1cc8-11f0-b41e-8c85907c8cf5", "10,25,63,57")
+	//TestGrpcCheckData("click-dark-ch", "25011d90-1cc8-11f0-b41e-8c85907c8cf5", "10,25,63,57")
 
 	//TestGrpcGetStatusInfo("25011d90-1cc8-11f0-b41e-8c85907c8cf5")
 

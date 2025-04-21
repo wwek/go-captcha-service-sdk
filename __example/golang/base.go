@@ -6,8 +6,6 @@ import (
 	"github.com/wenlng/go-captcha-service-sdk/golang/grpcapi"
 	"github.com/wenlng/go-captcha-service-sdk/golang/resetapi"
 	"github.com/wenlng/go-captcha-service-sdk/golang/sdlb"
-	"github.com/wenlng/go-service-link/servicediscovery"
-	"github.com/wenlng/go-service-link/servicediscovery/balancer"
 )
 
 var restapiCli resetapi.Client
@@ -15,16 +13,20 @@ var grpcapiCli grpcapi.Client
 var sdlbInts *sdlb.SDLB
 
 const serviceName = "go-captcha-service"
-const Addrs = "localhost:2379"
+const Addrs = "localhost:8848"
+const Username = "nacos"
+const Password = "nacos"
 const ApiKey = "my-secret-key-123"
 
 // setupHttpClient .
 func setupHttpClient() error {
 	sdlbInstance, err := sdlb.NewServiceDiscoveryLB(sdlb.ClientConfig{
-		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeEtcd,
+		ServiceDiscoveryType: sdlb.ServiceDiscoveryTypeNacos,
 		Addrs:                Addrs,
-		LoadBalancerType:     balancer.LoadBalancerTypeRandom,
+		LoadBalancerType:     sdlb.LoadBalancerTypeRandom,
 		ServiceName:          serviceName,
+		Username:             Username,
+		Password:             Password,
 	})
 
 	if err != nil {
@@ -42,10 +44,12 @@ func setupHttpClient() error {
 // setupGrpcClient .
 func setupGrpcClient() error {
 	sdlbInstance, err := sdlb.NewServiceDiscoveryLB(sdlb.ClientConfig{
-		ServiceDiscoveryType: servicediscovery.ServiceDiscoveryTypeEtcd,
+		ServiceDiscoveryType: sdlb.ServiceDiscoveryTypeNacos,
 		Addrs:                Addrs,
-		LoadBalancerType:     balancer.LoadBalancerTypeRandom,
+		LoadBalancerType:     sdlb.LoadBalancerTypeRandom,
 		ServiceName:          serviceName,
+		Username:             Username,
+		Password:             Password,
 	})
 
 	if err != nil {

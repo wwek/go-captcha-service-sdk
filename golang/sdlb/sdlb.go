@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wenlng/go-service-link/foundation/common"
 	"github.com/wenlng/go-service-link/servicediscovery"
 	"github.com/wenlng/go-service-link/servicediscovery/balancer"
 	"github.com/wenlng/go-service-link/servicediscovery/instance"
@@ -17,8 +18,8 @@ const (
 	ServiceDiscoveryTypeEtcd      = servicediscovery.ServiceDiscoveryTypeEtcd
 	ServiceDiscoveryTypeZookeeper = servicediscovery.ServiceDiscoveryTypeZookeeper
 	ServiceDiscoveryTypeConsul    = servicediscovery.ServiceDiscoveryTypeConsul
-	ServiceDiscoveryTypeNacos     = servicediscovery.ServiceDiscoveryTypeNone
-	ServiceDiscoveryTypeNone      = servicediscovery.ServiceDiscoveryTypeNacos
+	ServiceDiscoveryTypeNacos     = servicediscovery.ServiceDiscoveryTypeNacos
+	ServiceDiscoveryTypeNone      = servicediscovery.ServiceDiscoveryTypeNone
 )
 
 // LoadBalancerType .
@@ -43,10 +44,15 @@ type SDLB struct {
 
 // ClientConfig ..
 type ClientConfig struct {
-	ServiceDiscoveryType  servicediscovery.ServiceDiscoveryType
-	LoadBalancerType      balancer.LoadBalancerType
-	ServiceName           string
-	Addrs                 string // 127.0.0.1:8080,192.168.0.1:8080
+	ServiceDiscoveryType servicediscovery.ServiceDiscoveryType
+	LoadBalancerType     balancer.LoadBalancerType
+	ServiceName          string
+	Addrs                string // 127.0.0.1:8080,192.168.0.1:8080
+	Username             string
+	Password             string
+
+	TlsConfig *common.TLSConfig
+
 	TTL                   time.Duration
 	KeepAlive             time.Duration // Heartbeat interval
 	LogOutputHookCallback servicediscovery.OutputLogCallback
@@ -60,6 +66,9 @@ func NewServiceDiscoveryLB(cnf ClientConfig) (*SDLB, error) {
 		TTL:         cnf.TTL,
 		KeepAlive:   cnf.KeepAlive,
 		ServiceName: cnf.ServiceName,
+		Username:    cnf.Username,
+		Password:    cnf.Password,
+		TlsConfig:   cnf.TlsConfig,
 	}
 
 	if config.TTL < 0 {
